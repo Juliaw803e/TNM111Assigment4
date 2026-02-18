@@ -9,22 +9,36 @@
     <body class="container-fluid">
         <div class="card text-center">
             <div class="card-header">
-                <h1>Star wars interaction complex networks node edge link diagram</h1>
+                <h1>Star wars</h1>
+                <h2>Interaction complex networks node edge link diagram</h2>
             </div>
         </div>
         <div class="container"> 
             <div id="box1">
-                <h2> hej</h2>
 
+                <!-- Select episodes-->
+                <div class="dropdown">
+                    <div class="dropdown-btn" onclick="toggleDropdown()">Select Episodes ▼</div>
+                  
+                    <div id="dropdown-menu" class="dropdown-menu">
+                      <label><input type="checkbox" value="ep1"> Episode 1</label>
+                      <label><input type="checkbox" value="ep2"> Episode 2</label>
+                      <label><input type="checkbox" value="ep3"> Episode 3</label>
+                    </div>
+                </div>
+                
             </div>
             <div id="box2">
-                <h2> då</h2>
+                <select id="selectBox2"></select>
             </div>
         </div>
     </body>
+   
 
     <script type=text/javascript src="libs/jquery/jquery.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Font style--> 
+     <style> @import url('https://fonts.cdnfonts.com/css/star-wars');</style>
  
     <!-- our scripts -->
     <script src="Home.js"></script>

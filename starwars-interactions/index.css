@@ -1,7 +1,23 @@
+
+/*Style interface*/
+body{
+    background-color: rgb(27, 26, 26);
+}
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: twinkle 2s infinite ease-in-out;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.3; }
+  }
 /* Container for the two boxes */
 .container {
     display: flex;            /* makes children sit side by side */
-    margin-top: 100px;
+    margin-top: 50px;       /*Var rutorna ligger*/
     width: 100%;              /* full screen width */
     height: 500px;            /* adjust as needed */
 }
@@ -9,6 +25,29 @@
 /* Each box takes half width */
 #box1, #box2 {
     flex: 1;                  /* equal width */
-    border: 2px outset black; /* your border */
+   
     margin: 5px;              /* optional spacing between boxes */
+    width: 50%;
+    height: 500px;
+    background-color: white;
 }
+
+
+h1{
+    font-family: 'Star Wars';
+    color: yellow;
+    text-align: center;
+}
+h2{
+    font-family: monospace;
+    color: yellow; 
+    text-align: center;
+}
+
+/*Tooltip test*/
+.tooltip {
+    font-family: sans-serif;
+    font-size: 12px;
+    color: #000;
+    z-index: 10;
+  }

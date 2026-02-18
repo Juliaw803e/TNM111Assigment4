@@ -1,29 +1,49 @@
+//najs: https://d3-graph-gallery.com/graph/network_basic.html
+//stars: https://www.madrasacademy.com/create-a-dynamic-starry-night-background-with-html-css-and-javascript/
 
+//Tooltip: 
+var tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("background-color", "#fff") // white background
+      .style("border", "1px solid #333")
+      .style("border-radius", "4px")
+      .style("padding", "5px 10px")
+      .style("pointer-events", "none") // so it doesn't block mouse
+      .style("opacity", 0); // hidden initially
 
-// set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 30, left: 40},
-  width = 400 - margin.left - margin.right,
-  height = 400 - margin.top - margin.bottom;
-
-// append the svg object to the body of the page
-var svg = d3.select("#box1")
-.append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
-.append("g")
-  .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")");
-
-//Hämta data
+//Hämta data: 
 Promise.all([
-    d3.json("starwars-episode-1-interactions-allCharacters.json"),
-    d3.json("starwars-episode-2-interactions-allCharacters.json"),
-    d3.json("starwars-episode-3-interactions-allCharacters.json")
-  ]).then(function([data1, data2, data3]) {
-      console.log("Data1:", data1);  // should now print {nodes: [...], links: [...]}
-      console.log("Data1 nodes:", data1.nodes);
-      console.log("Data1 links:", data1.links);
-  
+        d3.json("starwars-episode-1-interactions-allCharacters.json"),
+        d3.json("starwars-episode-2-interactions-allCharacters.json"),
+        d3.json("starwars-episode-3-interactions-allCharacters.json")
+      ]).then(([data1, data2, data3]) => {
+      
+// Keep a global list of all SVGs for linked brushing
+window.linkedGraphs = [];
+      
+const svg1 = drawData("box1", data1);
+const svg2 = drawData("box2", data2);
+      
+window.linkedGraphs.push(svg1);
+window.linkedGraphs.push(svg2);
+
+//Draw: 
+// set the dimensions and margins of the graph based on box
+function drawData(boxID, data){
+var box = document.getElementById(boxID);
+
+var margin = { top: 1, right: 50, bottom: 100, left: 50 },
+    width = box.clientWidth - 100,
+    height = box.clientHeight; 
+
+var svg = d3.select(box)
+  .append("svg")
+  .attr("width", box.clientWidth)
+  .attr("height", box.clientHeight)
+  .append("g")
+  .attr("transform", "translate(" + margin.right + "," + margin.top+ ")");
 
   // Initialize the links
   var link = svg
@@ -31,7 +51,65 @@ Promise.all([
     .data(data1.links)
     .enter()
     .append("line")
-      .style("stroke", "#aaa")
+    .style("stroke", "#dddddd")
+    .style("stroke-width",d => (d.value*0.4+2))
+    .on("mouseover", function(event, d) {
+        d3.select(this)
+          .style("stroke", "red")
+          .style("stroke-width", d => (d.value*0.4+3));
+        node
+          .filter(n => n === d.source || n === d.target)
+          .style("stroke", "red")
+          .style("stroke-width", 3);
+
+         // linked brushing: highlight in other graph
+        if (window.linkedGraphs) {
+            window.linkedGraphs.forEach(g => {
+                if (g !== svg) { 
+                    g.selectAll("circle")
+                    .filter(n => n.name === d.source.name || n.name === d.target.name)
+                    .style("stroke", "red")
+                    .style("stroke-width", 3);
+
+                    g.selectAll("line")
+                    .filter(l => l.source.name === d.source.name && l.target.name === d.target.name)
+                    .style("stroke", "red")
+                    .style("stroke-width", l => (l.value*0.4+3));
+                }
+            });
+        }
+
+        //tooltip test: 
+        tooltip.transition().duration(100).style("opacity", 1);
+        tooltip.html(`<strong>${d.source.name} & ${d.target.name}</strong><br>Count: ${d.value}`)
+           .style("left", (event.pageX + 10) + "px")
+           .style("top", (event.pageY - 28) + "px");
+      })
+    .on("mouseout", function(event, d) {
+        d3.select(this)
+          .style("stroke", "#dddddd")
+          .style("stroke-width", d.value * 0.4 + 1);
+    
+        node
+          .style("stroke", "none");
+
+        if (window.linkedGraphs) {
+            window.linkedGraphs.forEach(g => {
+              if (g !== svg) {
+                g.selectAll("circle")
+                
+                  .style("stroke", "none");
+    
+                g.selectAll("line")
+                  .style("stroke", "#dddddd")
+                  .style("stroke-width", l => l.value * 0.4 + 2);
+              }
+      });
+    }
+
+     //tooltip test: 
+     tooltip.transition().duration(100).style("opacity", 0);
+}); 
 
   // Initialize the nodes
   var node = svg
@@ -39,8 +117,73 @@ Promise.all([
     .data(data1.nodes)
     .enter()
     .append("circle")
-      .attr("r", 20)
-      .style("fill",  d => d.colour)
+    .attr("r", d => (d.value*0.4 + 5))
+    .style("fill",  d => d.colour)
+    .on("mouseover", function(event, d) {
+        d3.select(this)
+          .style("stroke", "red")
+          .style("stroke-width", 2);
+        link
+            .filter(l => l.source === d || l.target === d)
+            .style("stroke", "#dd7777")
+            .style("stroke-width", 3);
+             // linked brushing: highlight in other graph
+        if (window.linkedGraphs) {
+            window.linkedGraphs.forEach(g => {
+            if (g !== svg) { 
+                g.selectAll("circle")
+                .filter(n => n === d)
+                .style("stroke", "red")
+                .style("stroke-width", 2);
+
+                g.selectAll("line")
+                .filter(l => l.source === d || l.target === d)
+                .style("stroke", "#dd7777")
+                .style("stroke-width", 3);
+            }
+            });
+        }
+
+        //tooltip test: 
+        tooltip.transition().duration(100).style("opacity", 1);
+        tooltip.html(`<strong>${d.name}</strong><br>Count: ${d.value}`)
+           .style("left", (event.pageX + 10) + "px")
+           .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function(event, d) {
+      d3.select(this)
+        .style("stroke", null)
+        .style("stroke-width", 0);
+
+      link.style("stroke", "#dddddd")
+          .style("stroke-width", d => d.value * 0.4 + 1);
+
+      if (window.linkedGraphs) {
+        window.linkedGraphs.forEach(g => {
+          if (g !== svg) {
+            g.selectAll("circle")
+              .filter(n => n === d)
+              .style("stroke", null)
+              .style("stroke-width", 0);
+
+            g.selectAll("line")
+              .style("stroke", "#dddddd")
+              .style("stroke-width", l => l.value * 0.4 + 1);
+          }
+        });
+      }
+
+      //tooltip test: 
+      tooltip.transition().duration(100).style("opacity", 0);
+    });
+    
+      /*})
+      .on("mouseout", function(event, d) {
+        d3.select(this)
+          .style("stroke", "none");
+        link
+          .style("stroke", "#dddddd");
+      });*/
 
   // Let's list the force we wanna apply on the network
   var simulation = d3.forceSimulation(data1.nodes)
@@ -50,16 +193,40 @@ Promise.all([
   .on("tick", ticked);
 
   // This function is run at each iteration of the force algorithm, updating the nodes position.
+  var r = 10; // eller d.value om du vill
+
   function ticked() {
+    node
+      .attr("cx", d => d.x = Math.max(r, Math.min(width - r, d.x)))
+      .attr("cy", d => d.y = Math.max(r, Math.min(height - r, d.y)));
+  
     link
       .attr("x1", d => d.source.x)
       .attr("y1", d => d.source.y)
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y);
-  
-    node
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y);
   }
+  return svg; //end of drawData!
+}
+
+//Function to create multiple stars: --------------------------
+function createStars() {
+    const numberOfStars = 100; // Adjust for more or fewer stars
+    for (let i = 0; i < numberOfStars; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+  
+      // Random size, position, and animation duration for each star
+      const size = Math.random() * 3 + 1;
+      star.style.width = `${size}px`;
+      star.style.height = `${size}px`;
+      star.style.left = `${Math.random() * 100}vw`;
+      star.style.top = `${Math.random() * 100}vh`;
+      star.style.animationDuration = `${Math.random() * 2 + 1}s`;
+  
+      document.body.appendChild(star);
+    }
+  }
+  createStars();
 
 });
