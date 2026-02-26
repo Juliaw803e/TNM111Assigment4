@@ -1,5 +1,303 @@
 //najs: https://d3-graph-gallery.com/graph/network_basic.html
 //stars: https://www.madrasacademy.com/create-a-dynamic-starry-night-background-with-html-css-and-javascript/
+//Dropwdown with checkbox example: https://readymadeui.com/tailwind/component/dropdown-with-checkbox
+//Draw: 
+// set the dimensions and margins of the graph based on box
+function drawData(boxID, dataToUse){
+    var box = document.getElementById(boxID);
+    
+    var margin = { top: 1, right: 50, bottom: 100, left: 50 },
+        width = box.clientWidth - 100,
+        height = box.clientHeight; 
+    
+    var svg = d3.select(box)
+      .append("svg")
+      .attr("width", box.clientWidth)
+      .attr("height", box.clientHeight)
+      .append("g")
+      .attr("transform", "translate(" + margin.right + "," + margin.top+ ")");
+    
+      // Initialize the links
+      var link = svg
+        .selectAll("line")
+        .data(dataToUse.links)
+        .enter()
+        .append("line")
+        .style("stroke", "#dddddd")
+        .style("stroke-width",d => (d.value*0.4+2))
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+              .style("stroke", "red")
+              .style("stroke-width", d => (d.value*0.4+3));
+            node
+              .filter(n => n === d.source || n === d.target)
+              .style("stroke", "red")
+              .style("stroke-width", 3);
+    
+             // linked brushing: highlight in other graph
+            if (window.linkedGraphs) {
+                window.linkedGraphs.forEach(g => {
+                    if (g !== svg) { 
+                        g.selectAll("circle")
+                        .filter(n => n.name === d.source.name || n.name === d.target.name)
+                        .style("stroke", "red")
+                        .style("stroke-width", 3);
+    
+                        g.selectAll("line")
+                        .filter(l => l.source.name === d.source.name && l.target.name === d.target.name)
+                        .style("stroke", "red")
+                        .style("stroke-width", l => (l.value*0.4+3));
+                    }
+                });
+            }
+    
+            //tooltip test: 
+            tooltip.transition().duration(100).style("opacity", 1);
+            tooltip.html(`<strong>${d.source.name} & ${d.target.name}</strong><br>Count: ${d.value}`)
+               .style("left", (event.pageX + 10) + "px")
+               .style("top", (event.pageY - 28) + "px");
+          })
+        .on("mouseout", function(event, d) {
+            d3.select(this)
+              .style("stroke", "#dddddd")
+              .style("stroke-width", d.value * 0.4 + 1);
+        
+            node
+              .style("stroke", "none");
+    
+            if (window.linkedGraphs) {
+                window.linkedGraphs.forEach(g => {
+                  if (g !== svg) {
+                    g.selectAll("circle")
+                    
+                      .style("stroke", "none");
+        
+                    g.selectAll("line")
+                      .style("stroke", "#dddddd")
+                      .style("stroke-width", l => l.value * 0.4 + 2);
+                  }
+          });
+        }
+    
+         //tooltip test: 
+         tooltip.transition().duration(100).style("opacity", 0);
+    }); 
+    
+      // Initialize the nodes
+      var node = svg
+        .selectAll("circle")
+        .data(dataToUse.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", d => (d.value*0.4 + 5))
+        .style("fill",  d => d.colour)
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+              .style("stroke", "red")
+              .style("stroke-width", 2);
+            link
+                .filter(l => l.source === d || l.target === d)
+                .style("stroke", "#dd7777")
+                .style("stroke-width", 3);
+                 // linked brushing: highlight in other graph
+            if (window.linkedGraphs) {
+                window.linkedGraphs.forEach(g => {
+                if (g !== svg) { 
+                    g.selectAll("circle")
+                    .filter(n => n === d)
+                    .style("stroke", "red")
+                    .style("stroke-width", 2);
+    
+                    g.selectAll("line")
+                    .filter(l => l.source === d || l.target === d)
+                    .style("stroke", "#dd7777")
+                    .style("stroke-width", 3);
+                }
+                });
+            }
+    
+            //tooltip test: 
+            tooltip.transition().duration(100).style("opacity", 1);
+            tooltip.html(`<strong>${d.name}</strong><br>Count: ${d.value}`)
+               .style("left", (event.pageX + 10) + "px")
+               .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(event, d) {
+          d3.select(this)
+            .style("stroke", null)
+            .style("stroke-width", 0);
+    
+          link.style("stroke", "#dddddd")
+              .style("stroke-width", d => d.value * 0.4 + 1);
+    
+          if (window.linkedGraphs) {
+            window.linkedGraphs.forEach(g => {
+              if (g !== svg) {
+                g.selectAll("circle")
+                  .filter(n => n === d)
+                  .style("stroke", null)
+                  .style("stroke-width", 0);
+    
+                g.selectAll("line")
+                  .style("stroke", "#dddddd")
+                  .style("stroke-width", l => l.value * 0.4 + 1);
+              }
+            });
+          }
+    
+          //tooltip test: 
+          tooltip.transition().duration(100).style("opacity", 0);
+        });
+        
+          /*})
+          .on("mouseout", function(event, d) {
+            d3.select(this)
+              .style("stroke", "none");
+            link
+              .style("stroke", "#dddddd");
+          });*/
+    
+      // Let's list the force we wanna apply on the network
+      var simulation = d3.forceSimulation(dataToUse.nodes)
+      .force("link", d3.forceLink(dataToUse.links))
+      .force("charge", d3.forceManyBody().strength(-400))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .on("tick", ticked);
+    
+      // This function is run at each iteration of the force algorithm, updating the nodes position.
+      var r = 10; // eller d.value om du vill
+    
+      function ticked() {
+        node
+          .attr("cx", d => d.x = Math.max(r, Math.min(width - r, d.x)))
+          .attr("cy", d => d.y = Math.max(r, Math.min(height - r, d.y)));
+      
+        link
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+      }
+      return svg; //end of drawData!
+    }
+
+//Checkbox: 
+let show = true;
+function showCheckboxes() {
+    let checkboxes = document.getElementById("checkBoxes");
+     if (show) {
+        checkboxes.style.display = "block";
+        show = false;
+     } else {
+        checkboxes.style.display = "none";
+        show = true;
+    }
+}
+function showCheckboxes2() {
+    let checkboxes = document.getElementById("checkBoxes2");
+     if (show) {
+        checkboxes.style.display = "block";
+        show = false;
+     } else {
+        checkboxes.style.display = "none";
+        show = true;
+    }
+}
+
+
+
+function updateGraph(datasets) {
+    const checkedBoxes = document.querySelectorAll("#checkBoxes input[type='checkbox']:checked");
+    const selectedEpisodes = [...checkedBoxes].map(cb => parseInt(cb.value, 10)); // extract episode numbers
+    
+    const checkedBoxes2 = document.querySelectorAll("#checkBoxes2 input[type='checkbox']:checked");
+    const selectedEpisodes2= [...checkedBoxes2].map(cb => parseInt(cb.value, 10)); // extract episode numbers
+
+    console.log("Selected episodes:", selectedEpisodes);
+
+    let dataToUse;
+    let dataToUse2;
+
+    //box 1
+    if (selectedEpisodes.length == 6 || selectedEpisodes.length == 0) {
+      dataToUse = datasets[7];//dataAll
+      console.log("alla episoder"); 
+    }
+    else { 
+      dataToUse = mergeEpisodes(selectedEpisodes, datasets); // merge only the selected episodes
+      console.log("efter merge episoder"); 
+    }; 
+
+    //box2
+    if (selectedEpisodes2.length == 6 || selectedEpisodes2.length == 0) {
+        dataToUse2 = datasets[7];//dataAll
+        console.log("alla episoder"); 
+    }
+    else { 
+        dataToUse2 = mergeEpisodes(selectedEpisodes2, datasets); // merge only the selected episodes
+        console.log("efter merge episoder"); 
+    }; 
+
+    // now draw with D3
+    // REMOVE old SVGs first (to avoid duplicates)
+  d3.select("#box1 svg").remove();
+  d3.select("#box2 svg").remove();
+
+  // now draw the graphs
+  var svg1 = drawData("box1", dataToUse);
+  var svg2 = drawData("box2", dataToUse2);
+
+  // update linkedGraphs global
+  window.linkedGraphs = [svg1, svg2];
+}
+
+//merge episodes test: 
+function mergeEpisodes(selectedEpisodes, datasets) {
+    const uniqueNodes = [];
+    const uniqueLinks = [];
+    const nodeMap = new Map(); // nodeName -> node object
+  
+    selectedEpisodes.forEach(ep => {
+      const data = datasets[ep - 1];
+  
+      // Merge nodes
+      data.nodes.forEach((currNode, idx) => {
+        if (!nodeMap.has(currNode.name)) {
+          const newNode = {...currNode};
+          nodeMap.set(currNode.name, newNode);
+          uniqueNodes.push(newNode);
+        } else {
+          nodeMap.get(currNode.name).value += currNode.value;
+        }
+      });
+  
+      // Merge links
+      data.links.forEach(currLink => {
+        const sourceNode = data.nodes[currLink.source]; // index → node object
+        const targetNode = data.nodes[currLink.target];
+  
+        // Map to uniqueNodes
+        const sourceUnique = nodeMap.get(sourceNode.name);
+        const targetUnique = nodeMap.get(targetNode.name);
+  
+        // Merge if link exists
+        const key = [sourceUnique.name, targetUnique.name].sort().join("__");
+        let existing = uniqueLinks.find(l => [l.source.name, l.target.name].sort().join("__") === key);
+  
+        if (existing) {
+          existing.value += currLink.value;
+        } else {
+          uniqueLinks.push({
+            source: sourceUnique,
+            target: targetUnique,
+            value: currLink.value
+          });
+        }
+      });
+    });
+  
+    return { nodes: uniqueNodes, links: uniqueLinks };
+  }
 
 //Tooltip: 
 var tooltip = d3.select("body")
@@ -17,197 +315,32 @@ var tooltip = d3.select("body")
 Promise.all([
         d3.json("starwars-episode-1-interactions-allCharacters.json"),
         d3.json("starwars-episode-2-interactions-allCharacters.json"),
-        d3.json("starwars-episode-3-interactions-allCharacters.json")
-      ]).then(([data1, data2, data3]) => {
+        d3.json("starwars-episode-3-interactions-allCharacters.json"), 
+        d3.json("starwars-episode-4-interactions-allCharacters.json"),
+        d3.json("starwars-episode-5-interactions-allCharacters.json"),
+        d3.json("starwars-episode-6-interactions-allCharacters.json"), 
+        d3.json("starwars-episode-7-interactions-allCharacters.json"), 
+        d3.json("starwars-full-interactions-allCharacters.json")
+      ]).then(([data1, data2, data3, data4, data5, data6, data7, dataAll]) => {
+
+const datasets = [data1, data2, data3, data4, data5, data6, data7, dataAll]; 
       
 // Keep a global list of all SVGs for linked brushing
 window.linkedGraphs = [];
-      
-const svg1 = drawData("box1", data1);
-const svg2 = drawData("box2", data2);
-      
-window.linkedGraphs.push(svg1);
-window.linkedGraphs.push(svg2);
+/*var svg1 = drawData("box1", data1);
+var svg2 = drawData("box2", data2);*/
+//event listener
+document.querySelectorAll("#checkBoxes input[type='checkbox']").forEach(cb => {
+    cb.addEventListener("change", () => updateGraph(datasets));
+});
+document.querySelectorAll("#checkBoxes2 input[type='checkbox']").forEach(cb => {
+    cb.addEventListener("change", () => updateGraph(datasets));
+});
 
-//Draw: 
-// set the dimensions and margins of the graph based on box
-function drawData(boxID, data){
-var box = document.getElementById(boxID);
-
-var margin = { top: 1, right: 50, bottom: 100, left: 50 },
-    width = box.clientWidth - 100,
-    height = box.clientHeight; 
-
-var svg = d3.select(box)
-  .append("svg")
-  .attr("width", box.clientWidth)
-  .attr("height", box.clientHeight)
-  .append("g")
-  .attr("transform", "translate(" + margin.right + "," + margin.top+ ")");
-
-  // Initialize the links
-  var link = svg
-    .selectAll("line")
-    .data(data1.links)
-    .enter()
-    .append("line")
-    .style("stroke", "#dddddd")
-    .style("stroke-width",d => (d.value*0.4+2))
-    .on("mouseover", function(event, d) {
-        d3.select(this)
-          .style("stroke", "red")
-          .style("stroke-width", d => (d.value*0.4+3));
-        node
-          .filter(n => n === d.source || n === d.target)
-          .style("stroke", "red")
-          .style("stroke-width", 3);
-
-         // linked brushing: highlight in other graph
-        if (window.linkedGraphs) {
-            window.linkedGraphs.forEach(g => {
-                if (g !== svg) { 
-                    g.selectAll("circle")
-                    .filter(n => n.name === d.source.name || n.name === d.target.name)
-                    .style("stroke", "red")
-                    .style("stroke-width", 3);
-
-                    g.selectAll("line")
-                    .filter(l => l.source.name === d.source.name && l.target.name === d.target.name)
-                    .style("stroke", "red")
-                    .style("stroke-width", l => (l.value*0.4+3));
-                }
-            });
-        }
-
-        //tooltip test: 
-        tooltip.transition().duration(100).style("opacity", 1);
-        tooltip.html(`<strong>${d.source.name} & ${d.target.name}</strong><br>Count: ${d.value}`)
-           .style("left", (event.pageX + 10) + "px")
-           .style("top", (event.pageY - 28) + "px");
-      })
-    .on("mouseout", function(event, d) {
-        d3.select(this)
-          .style("stroke", "#dddddd")
-          .style("stroke-width", d.value * 0.4 + 1);
-    
-        node
-          .style("stroke", "none");
-
-        if (window.linkedGraphs) {
-            window.linkedGraphs.forEach(g => {
-              if (g !== svg) {
-                g.selectAll("circle")
-                
-                  .style("stroke", "none");
-    
-                g.selectAll("line")
-                  .style("stroke", "#dddddd")
-                  .style("stroke-width", l => l.value * 0.4 + 2);
-              }
-      });
-    }
-
-     //tooltip test: 
-     tooltip.transition().duration(100).style("opacity", 0);
-}); 
-
-  // Initialize the nodes
-  var node = svg
-    .selectAll("circle")
-    .data(data1.nodes)
-    .enter()
-    .append("circle")
-    .attr("r", d => (d.value*0.4 + 5))
-    .style("fill",  d => d.colour)
-    .on("mouseover", function(event, d) {
-        d3.select(this)
-          .style("stroke", "red")
-          .style("stroke-width", 2);
-        link
-            .filter(l => l.source === d || l.target === d)
-            .style("stroke", "#dd7777")
-            .style("stroke-width", 3);
-             // linked brushing: highlight in other graph
-        if (window.linkedGraphs) {
-            window.linkedGraphs.forEach(g => {
-            if (g !== svg) { 
-                g.selectAll("circle")
-                .filter(n => n === d)
-                .style("stroke", "red")
-                .style("stroke-width", 2);
-
-                g.selectAll("line")
-                .filter(l => l.source === d || l.target === d)
-                .style("stroke", "#dd7777")
-                .style("stroke-width", 3);
-            }
-            });
-        }
-
-        //tooltip test: 
-        tooltip.transition().duration(100).style("opacity", 1);
-        tooltip.html(`<strong>${d.name}</strong><br>Count: ${d.value}`)
-           .style("left", (event.pageX + 10) + "px")
-           .style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", function(event, d) {
-      d3.select(this)
-        .style("stroke", null)
-        .style("stroke-width", 0);
-
-      link.style("stroke", "#dddddd")
-          .style("stroke-width", d => d.value * 0.4 + 1);
-
-      if (window.linkedGraphs) {
-        window.linkedGraphs.forEach(g => {
-          if (g !== svg) {
-            g.selectAll("circle")
-              .filter(n => n === d)
-              .style("stroke", null)
-              .style("stroke-width", 0);
-
-            g.selectAll("line")
-              .style("stroke", "#dddddd")
-              .style("stroke-width", l => l.value * 0.4 + 1);
-          }
-        });
-      }
-
-      //tooltip test: 
-      tooltip.transition().duration(100).style("opacity", 0);
-    });
-    
-      /*})
-      .on("mouseout", function(event, d) {
-        d3.select(this)
-          .style("stroke", "none");
-        link
-          .style("stroke", "#dddddd");
-      });*/
-
-  // Let's list the force we wanna apply on the network
-  var simulation = d3.forceSimulation(data1.nodes)
-  .force("link", d3.forceLink(data1.links))
-  .force("charge", d3.forceManyBody().strength(-400))
-  .force("center", d3.forceCenter(width / 2, height / 2))
-  .on("tick", ticked);
-
-  // This function is run at each iteration of the force algorithm, updating the nodes position.
-  var r = 10; // eller d.value om du vill
-
-  function ticked() {
-    node
-      .attr("cx", d => d.x = Math.max(r, Math.min(width - r, d.x)))
-      .attr("cy", d => d.y = Math.max(r, Math.min(height - r, d.y)));
-  
-    link
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y);
-  }
-  return svg; //end of drawData!
-}
+updateGraph(datasets); 
+});
+/*window.linkedGraphs.push(svg1);
+window.linkedGraphs.push(svg2);*/
 
 //Function to create multiple stars: --------------------------
 function createStars() {
@@ -228,5 +361,3 @@ function createStars() {
     }
   }
   createStars();
-
-});

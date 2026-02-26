@@ -13,23 +13,96 @@
                 <h2>Interaction complex networks node edge link diagram</h2>
             </div>
         </div>
+
         <div class="container"> 
             <div id="box1">
-
-                <!-- Select episodes-->
-                <div class="dropdown">
-                    <div class="dropdown-btn" onclick="toggleDropdown()">Select Episodes ▼</div>
-                  
-                    <div id="dropdown-menu" class="dropdown-menu">
-                      <label><input type="checkbox" value="ep1"> Episode 1</label>
-                      <label><input type="checkbox" value="ep2"> Episode 2</label>
-                      <label><input type="checkbox" value="ep3"> Episode 3</label>
+                <div id="Menu">
+                    <!-- Select episodes-->
+                    <form>
+                        <div class="multipleSelection">
+                            <div class="selectBox" onclick="showCheckboxes()">
+                                <select>
+                                    <option>Select episodes</option>
+                                </select>
+                                <div class="overSelect"></div>
+                            </div>
+                            <div id="checkBoxes">
+                                <label for="1_1">
+                                    <input type="checkbox" id="1_1" value="1" />
+                                    Episode 1
+                                </label>
+                                <label for="1_2">
+                                    <input type="checkbox" id="1_2" value="2" />
+                                    Episode 2
+                                </label>
+                                <label for="1_3">
+                                    <input type="checkbox" id="1_3" value="3"/>
+                                    Episode 3
+                                </label>
+                                <label for="1_4">
+                                    <input type="checkbox" id="1_4" value="4"/>
+                                    Episode 4
+                                </label>
+                                <label for="1_5">
+                                    <input type="checkbox" id="1_5" value="5" />
+                                    Episode 5
+                                </label>
+                                <label for="1_6">
+                                    <input type="checkbox" id="1_6" value="6"/>
+                                    Episode 6
+                                </label>
+                                <label for="1_7">
+                                    <input type="checkbox" id="1_7" value="7"/>
+                                    Episode 7
+                                </label>
+                            </div>
+                        </div>
+                    </form>
                     </div>
-                </div>
-                
             </div>
             <div id="box2">
-                <select id="selectBox2"></select>
+                <form>
+                    <div class="multipleSelection2">
+                        <div class="selectBox2" onclick="showCheckboxes2()">
+                            <select>
+                                <option>Select episodes</option>
+                            </select>
+                            <div class="overSelect2"></div>
+                        </div>
+                        <div id="checkBoxes2">
+                            <label for="2_1">
+                                <input type="checkbox" id="2_1" value="1" />
+                                Episode 1
+                            </label>
+                            <label for="2_2">
+                                <input type="checkbox" id="2_2" value="2" />
+                                Episode 2
+                            </label>
+                            <label for="2_3">
+                                <input type="checkbox" id="2_3" value="3"/>
+                                Episode 3
+                            </label>
+                            <label for="2_4">
+                                <input type="checkbox" id="2_4" value="4"/>
+                                Episode 4
+                            </label>
+                            <label for="2_5">
+                                <input type="checkbox" id="2_5" value="5" />
+                                Episode 5
+                            </label>
+                            <label for="2_6">
+                                <input type="checkbox" id="2_6" value="6"/>
+                                Episode 6
+                            </label>
+                            <label for="2_7">
+                                <input type="checkbox" id="2_7" value="7"/>
+                                Episode 7
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                </div>
+                
             </div>
         </div>
     </body>
