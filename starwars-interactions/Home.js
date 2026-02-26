@@ -24,11 +24,11 @@ function drawData(boxID, dataToUse){
         .enter()
         .append("line")
         .style("stroke", "#dddddd")
-        .style("stroke-width",d => (d.value*0.4+2))
+        .style("stroke-width",d => (d.value*0.15 + 2))
         .on("mouseover", function(event, d) {
             d3.select(this)
               .style("stroke", "red")
-              .style("stroke-width", d => (d.value*0.4+3));
+              .style("stroke-width", d => (d.value*0.2+ 3));
             node
               .filter(n => n === d.source || n === d.target)
               .style("stroke", "red")
@@ -46,11 +46,36 @@ function drawData(boxID, dataToUse){
                         g.selectAll("line")
                         .filter(l => l.source.name === d.source.name && l.target.name === d.target.name)
                         .style("stroke", "red")
-                        .style("stroke-width", l => (l.value*0.4+3));
+                        .style("stroke-width", l => (l.value*0.2+3));
+
+                        //Tooltip for links: 
+                        //test tooltip2way: 
+                        const linkedSel = g.selectAll("line")
+                        .filter(l =>
+                            (l.source.name === d.source.name && l.target.name === d.target.name) ||
+                            (l.source.name === d.target.name && l.target.name === d.source.name)
+                        );
+                        console.log("före"); 
+                        if(linkedSel != null){
+                            const linkedDatum = linkedSel.datum();
+                            const nodeEl = linkedSel.node();
+                            console.log("efter");
+
+                            if (linkedDatum && nodeEl) {
+                                const rect = nodeEl.getBoundingClientRect();
+
+                                tooltip2
+                                    .style("opacity", 1)
+                                    .html(`<strong>${linkedDatum.source.name} & ${linkedDatum.target.name}</strong><br>Count: ${linkedDatum.value}`)
+                                    .style("left", rect.x + "px")
+                                    .style("top", rect.y + "px");
+                            } 
+                        }
+                        //test tooltip2way: 
                     }
                 });
             }
-    
+            console.log("innan riktiga tool");
             //tooltip test: 
             tooltip.transition().duration(100).style("opacity", 1);
             tooltip.html(`<strong>${d.source.name} & ${d.target.name}</strong><br>Count: ${d.value}`)
@@ -60,7 +85,7 @@ function drawData(boxID, dataToUse){
         .on("mouseout", function(event, d) {
             d3.select(this)
               .style("stroke", "#dddddd")
-              .style("stroke-width", d.value * 0.4 + 1);
+              .style("stroke-width", d.value * 0.15 + 2);
         
             node
               .style("stroke", "none");
@@ -74,8 +99,10 @@ function drawData(boxID, dataToUse){
         
                     g.selectAll("line")
                       .style("stroke", "#dddddd")
-                      .style("stroke-width", l => l.value * 0.4 + 2);
+                      .style("stroke-width", l => l.value * 0.15 + 2);
                   }
+                  //test tooltip2way: 
+                  tooltip2.transition().duration(100).style("opacity", 0);
           });
         }
     
@@ -89,7 +116,7 @@ function drawData(boxID, dataToUse){
         .data(dataToUse.nodes)
         .enter()
         .append("circle")
-        .attr("r", d => (d.value*0.4 + 5))
+        .attr("r", d => (d.value*0.2 + 5))
         .style("fill",  d => d.colour)
         .on("mouseover", function(event, d) {
             d3.select(this)
@@ -104,23 +131,42 @@ function drawData(boxID, dataToUse){
                 window.linkedGraphs.forEach(g => {
                 if (g !== svg) { 
                     g.selectAll("circle")
-                    .filter(n => n === d)
+                    .filter(n => n.name === d.name)
                     .style("stroke", "red")
                     .style("stroke-width", 2);
     
                     g.selectAll("line")
-                    .filter(l => l.source === d || l.target === d)
+                    .filter(l => l.source.name === d.name || l.target.name === d.name)
                     .style("stroke", "#dd7777")
                     .style("stroke-width", 3);
+
+                    //test tooltip2way: 
+                    const linkedSel = g.selectAll("circle")
+                    .filter(n => n.name === d.name);
+                  
+                    const linkedDatum = linkedSel.datum();
+                    const nodeEl = linkedSel.node();
+                    
+                    if (linkedDatum && nodeEl) {
+                        const rect = nodeEl.getBoundingClientRect();
+
+                        tooltip2
+                        .style("opacity", 1)
+                        .html(`<strong>${linkedDatum.name}</strong><br>Count: ${linkedDatum.value}`)
+                        .style("left", (rect.x) + "px")
+                        .style("top", (rect.y) + "px");
+                    }
+                    //test tooltip2way: 
                 }
+               
                 });
             }
     
-            //tooltip test: 
+            //tooltip: 
             tooltip.transition().duration(100).style("opacity", 1);
             tooltip.html(`<strong>${d.name}</strong><br>Count: ${d.value}`)
-               .style("left", (event.pageX + 10) + "px")
-               .style("top", (event.pageY - 28) + "px");
+               .style("left", (event.pageX + 5) + "px")
+               .style("top", (event.pageY - 10) + "px");
         })
         .on("mouseout", function(event, d) {
           d3.select(this)
@@ -128,19 +174,23 @@ function drawData(boxID, dataToUse){
             .style("stroke-width", 0);
     
           link.style("stroke", "#dddddd")
-              .style("stroke-width", d => d.value * 0.4 + 1);
+              .style("stroke-width", d => d.value * 0.15 + 2);
     
           if (window.linkedGraphs) {
             window.linkedGraphs.forEach(g => {
               if (g !== svg) {
                 g.selectAll("circle")
-                  .filter(n => n === d)
+                  .filter(n => n.name === d.name)
                   .style("stroke", null)
                   .style("stroke-width", 0);
     
                 g.selectAll("line")
                   .style("stroke", "#dddddd")
-                  .style("stroke-width", l => l.value * 0.4 + 1);
+                  .style("stroke-width", l => l.value * 0.15 + 2);
+
+                  //test tooltip2way: 
+                  tooltip2.transition().duration(100).style("opacity", 0);
+                
               }
             });
           }
@@ -160,12 +210,13 @@ function drawData(boxID, dataToUse){
       // Let's list the force we wanna apply on the network
       var simulation = d3.forceSimulation(dataToUse.nodes)
       .force("link", d3.forceLink(dataToUse.links))
-      .force("charge", d3.forceManyBody().strength(-400))
+      .force("charge", d3.forceManyBody().strength(-100))
       .force("center", d3.forceCenter(width / 2, height / 2))
+       .force("collision", d3.forceCollide().radius(d => d.value * 0.4 + 25))
       .on("tick", ticked);
     
       // This function is run at each iteration of the force algorithm, updating the nodes position.
-      var r = 10; // eller d.value om du vill
+      var r = 40; // eller d.value om du vill
     
       function ticked() {
         node
@@ -301,6 +352,17 @@ function mergeEpisodes(selectedEpisodes, datasets) {
 
 //Tooltip: 
 var tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("background-color", "#fff") // white background
+      .style("border", "1px solid #333")
+      .style("border-radius", "4px")
+      .style("padding", "5px 10px")
+      .style("pointer-events", "none") // so it doesn't block mouse
+      .style("opacity", 0); // hidden initially
+
+var tooltip2 = d3.select("body")
       .append("div")
       .attr("class", "tooltip")
       .style("position", "absolute")
