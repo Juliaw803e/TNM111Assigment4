@@ -1,14 +1,13 @@
-//najs: https://d3-graph-gallery.com/graph/network_basic.html
-//stars: https://www.madrasacademy.com/create-a-dynamic-starry-night-background-with-html-css-and-javascript/
+//lab instructions link: https://d3-graph-gallery.com/graph/network_basic.html
 //Dropwdown with checkbox example: https://readymadeui.com/tailwind/component/dropdown-with-checkbox
-//Draw: 
-// set the dimensions and margins of the graph based on box
+
+//Draw function: 
 function drawData(boxID, dataToUse){
-    var box = document.getElementById(boxID);
+    var box = document.getElementById(boxID); //Dimensions and margins of the graph based on box
     
     var margin = { top: 1, right: 50, bottom: 100, left: 50 },
-        width = box.clientWidth - 100,
-        height = box.clientHeight; 
+        width = box.clientWidth - 75,
+        height = box.clientHeight - 30; 
     
     var svg = d3.select(box)
       .append("svg")
@@ -17,18 +16,19 @@ function drawData(boxID, dataToUse){
       .append("g")
       .attr("transform", "translate(" + margin.right + "," + margin.top+ ")");
     
-      // Initialize the links
+      // Initialize the links: 
       var link = svg
         .selectAll("line")
         .data(dataToUse.links)
         .enter()
         .append("line")
         .style("stroke", "#dddddd")
-        .style("stroke-width",d => (d.value*0.15 + 2))
+        .style("stroke-width",d => (d.value * 0.15 + 2))
         .on("mouseover", function(event, d) {
+            //When hovering: 
             d3.select(this)
               .style("stroke", "red")
-              .style("stroke-width", d => (d.value*0.2+ 3));
+              .style("stroke-width", d => (d.value * 0.2 + 3));
             node
               .filter(n => n === d.source || n === d.target)
               .style("stroke", "red")
@@ -48,21 +48,20 @@ function drawData(boxID, dataToUse){
                         .style("stroke", "red")
                         .style("stroke-width", l => (l.value*0.2+3));
 
-                        //Tooltip for links: 
-                        //test tooltip2way: 
+                        //Tooltip for other graph: 
                         const linkedSel = g.selectAll("line")
                         .filter(l =>
                             (l.source.name === d.source.name && l.target.name === d.target.name) ||
                             (l.source.name === d.target.name && l.target.name === d.source.name)
                         );
-                        console.log("före"); 
-                        if(linkedSel != null){
+                        
+                        //If the same link exists in the other graph: 
+                        if(!linkedSel.empty()){
                             const linkedDatum = linkedSel.datum();
                             const nodeEl = linkedSel.node();
-                            console.log("efter");
 
                             if (linkedDatum && nodeEl) {
-                                const rect = nodeEl.getBoundingClientRect();
+                                const rect = nodeEl.getBoundingClientRect(); //get coordinates for other graph
 
                                 tooltip2
                                     .style("opacity", 1)
@@ -71,22 +70,22 @@ function drawData(boxID, dataToUse){
                                     .style("top", rect.y + "px");
                             } 
                         }
-                        //test tooltip2way: 
                     }
                 });
             }
-            console.log("innan riktiga tool");
-            //tooltip test: 
+
+            //tooltip: 
             tooltip.transition().duration(100).style("opacity", 1);
             tooltip.html(`<strong>${d.source.name} & ${d.target.name}</strong><br>Count: ${d.value}`)
                .style("left", (event.pageX + 10) + "px")
                .style("top", (event.pageY - 28) + "px");
           })
         .on("mouseout", function(event, d) {
+            //When un-hovering: 
             d3.select(this)
               .style("stroke", "#dddddd")
               .style("stroke-width", d.value * 0.15 + 2);
-        
+
             node
               .style("stroke", "none");
     
@@ -101,12 +100,12 @@ function drawData(boxID, dataToUse){
                       .style("stroke", "#dddddd")
                       .style("stroke-width", l => l.value * 0.15 + 2);
                   }
-                  //test tooltip2way: 
+                  
                   tooltip2.transition().duration(100).style("opacity", 0);
-          });
-        }
+                });
+            }
     
-         //tooltip test: 
+         //tooltip: 
          tooltip.transition().duration(100).style("opacity", 0);
     }); 
     
@@ -119,6 +118,7 @@ function drawData(boxID, dataToUse){
         .attr("r", d => (d.value*0.2 + 5))
         .style("fill",  d => d.colour)
         .on("mouseover", function(event, d) {
+            //when hovering: 
             d3.select(this)
               .style("stroke", "red")
               .style("stroke-width", 2);
@@ -126,7 +126,8 @@ function drawData(boxID, dataToUse){
                 .filter(l => l.source === d || l.target === d)
                 .style("stroke", "#dd7777")
                 .style("stroke-width", 3);
-                 // linked brushing: highlight in other graph
+
+            // linked brushing: highlight in other graph
             if (window.linkedGraphs) {
                 window.linkedGraphs.forEach(g => {
                 if (g !== svg) { 
@@ -140,23 +141,25 @@ function drawData(boxID, dataToUse){
                     .style("stroke", "#dd7777")
                     .style("stroke-width", 3);
 
-                    //test tooltip2way: 
+                    //Tooltip in other graph: 
                     const linkedSel = g.selectAll("circle")
                     .filter(n => n.name === d.name);
-                  
-                    const linkedDatum = linkedSel.datum();
-                    const nodeEl = linkedSel.node();
                     
-                    if (linkedDatum && nodeEl) {
-                        const rect = nodeEl.getBoundingClientRect();
+                    //if node exists in the other graph show tooltip: 
+                    if(!linkedSel.empty()){
+                        const linkedDatum = linkedSel.datum();
+                        const nodeEl = linkedSel.node();
+                        
+                        if (linkedDatum && nodeEl) {
+                            const rect = nodeEl.getBoundingClientRect(); //get coordinates for other graph
 
-                        tooltip2
-                        .style("opacity", 1)
-                        .html(`<strong>${linkedDatum.name}</strong><br>Count: ${linkedDatum.value}`)
-                        .style("left", (rect.x) + "px")
-                        .style("top", (rect.y) + "px");
+                            tooltip2
+                            .style("opacity", 1)
+                            .html(`<strong>${linkedDatum.name}</strong><br>Count: ${linkedDatum.value}`)
+                            .style("left", (rect.x) + "px")
+                            .style("top", (rect.y) + "px");
+                        }
                     }
-                    //test tooltip2way: 
                 }
                
                 });
@@ -169,6 +172,7 @@ function drawData(boxID, dataToUse){
                .style("top", (event.pageY - 10) + "px");
         })
         .on("mouseout", function(event, d) {
+        //When un-hoovering
           d3.select(this)
             .style("stroke", null)
             .style("stroke-width", 0);
@@ -188,26 +192,15 @@ function drawData(boxID, dataToUse){
                   .style("stroke", "#dddddd")
                   .style("stroke-width", l => l.value * 0.15 + 2);
 
-                  //test tooltip2way: 
                   tooltip2.transition().duration(100).style("opacity", 0);
                 
               }
             });
           }
-    
-          //tooltip test: 
           tooltip.transition().duration(100).style("opacity", 0);
         });
-        
-          /*})
-          .on("mouseout", function(event, d) {
-            d3.select(this)
-              .style("stroke", "none");
-            link
-              .style("stroke", "#dddddd");
-          });*/
     
-      // Let's list the force we wanna apply on the network
+      //Force to apply on the network
       var simulation = d3.forceSimulation(dataToUse.nodes)
       .force("link", d3.forceLink(dataToUse.links))
       .force("charge", d3.forceManyBody().strength(-100))
@@ -215,12 +208,11 @@ function drawData(boxID, dataToUse){
        .force("collision", d3.forceCollide().radius(d => d.value * 0.4 + 25))
       .on("tick", ticked);
     
-      // This function is run at each iteration of the force algorithm, updating the nodes position.
-      var r = 40; // eller d.value om du vill
-    
+      // Run at each iteration of the force algorithm, updating the nodes position
+      var r = 40; 
       function ticked() {
         node
-          .attr("cx", d => d.x = Math.max(r, Math.min(width - r, d.x)))
+          .attr("cx", d => d.x = Math.max(r, Math.min(width - 80, d.x)))
           .attr("cy", d => d.y = Math.max(r, Math.min(height - r, d.y)));
       
         link
@@ -229,10 +221,10 @@ function drawData(boxID, dataToUse){
           .attr("x2", d => d.target.x)
           .attr("y2", d => d.target.y);
       }
-      return svg; //end of drawData!
+      return svg; //End of drawData!
     }
 
-//Checkbox: 
+//Checkboxes: 
 let show = true;
 function showCheckboxes() {
     let checkboxes = document.getElementById("checkBoxes");
@@ -255,8 +247,7 @@ function showCheckboxes2() {
     }
 }
 
-
-
+//update and draw graph when choosing episodes
 function updateGraph(datasets) {
     const checkedBoxes = document.querySelectorAll("#checkBoxes input[type='checkbox']:checked");
     const selectedEpisodes = [...checkedBoxes].map(cb => parseInt(cb.value, 10)); // extract episode numbers
@@ -264,49 +255,42 @@ function updateGraph(datasets) {
     const checkedBoxes2 = document.querySelectorAll("#checkBoxes2 input[type='checkbox']:checked");
     const selectedEpisodes2= [...checkedBoxes2].map(cb => parseInt(cb.value, 10)); // extract episode numbers
 
-    console.log("Selected episodes:", selectedEpisodes);
-
     let dataToUse;
     let dataToUse2;
 
     //box 1
     if (selectedEpisodes.length == 6 || selectedEpisodes.length == 0) {
       dataToUse = datasets[7];//dataAll
-      console.log("alla episoder"); 
     }
     else { 
       dataToUse = mergeEpisodes(selectedEpisodes, datasets); // merge only the selected episodes
-      console.log("efter merge episoder"); 
     }; 
 
     //box2
     if (selectedEpisodes2.length == 6 || selectedEpisodes2.length == 0) {
         dataToUse2 = datasets[7];//dataAll
-        console.log("alla episoder"); 
     }
     else { 
         dataToUse2 = mergeEpisodes(selectedEpisodes2, datasets); // merge only the selected episodes
-        console.log("efter merge episoder"); 
     }; 
 
-    // now draw with D3
-    // REMOVE old SVGs first (to avoid duplicates)
-  d3.select("#box1 svg").remove();
-  d3.select("#box2 svg").remove();
+    //Remove old svgs to avoid duplicates
+    d3.select("#box1 svg").remove();
+     d3.select("#box2 svg").remove();
 
-  // now draw the graphs
-  var svg1 = drawData("box1", dataToUse);
-  var svg2 = drawData("box2", dataToUse2);
+    //Draw graphs
+    var svg1 = drawData("box1", dataToUse);
+    var svg2 = drawData("box2", dataToUse2);
 
-  // update linkedGraphs global
-  window.linkedGraphs = [svg1, svg2];
+    //Update linkedGraphs global
+    window.linkedGraphs = [svg1, svg2];
 }
 
-//merge episodes test: 
+//merge episodes: 
 function mergeEpisodes(selectedEpisodes, datasets) {
     const uniqueNodes = [];
     const uniqueLinks = [];
-    const nodeMap = new Map(); // nodeName -> node object
+    const nodeMap = new Map(); //nodeName -> node object
   
     selectedEpisodes.forEach(ep => {
       const data = datasets[ep - 1];
@@ -337,7 +321,8 @@ function mergeEpisodes(selectedEpisodes, datasets) {
   
         if (existing) {
           existing.value += currLink.value;
-        } else {
+        } 
+        else {
           uniqueLinks.push({
             source: sourceUnique,
             target: targetUnique,
@@ -346,8 +331,8 @@ function mergeEpisodes(selectedEpisodes, datasets) {
         }
       });
     });
-  
-    return { nodes: uniqueNodes, links: uniqueLinks };
+
+    return { nodes: uniqueNodes, links: uniqueLinks }; //merged nodes and links
   }
 
 //Tooltip: 
@@ -359,8 +344,8 @@ var tooltip = d3.select("body")
       .style("border", "1px solid #333")
       .style("border-radius", "4px")
       .style("padding", "5px 10px")
-      .style("pointer-events", "none") // so it doesn't block mouse
-      .style("opacity", 0); // hidden initially
+      .style("pointer-events", "none") // so it doesnt block mouse
+      .style("opacity", 0); //hidden initially
 
 var tooltip2 = d3.select("body")
       .append("div")
@@ -370,8 +355,8 @@ var tooltip2 = d3.select("body")
       .style("border", "1px solid #333")
       .style("border-radius", "4px")
       .style("padding", "5px 10px")
-      .style("pointer-events", "none") // so it doesn't block mouse
-      .style("opacity", 0); // hidden initially
+      .style("pointer-events", "none") // so it doesnt block mouse
+      .style("opacity", 0); //hidden initially
 
 //Hämta data: 
 Promise.all([
@@ -389,9 +374,8 @@ const datasets = [data1, data2, data3, data4, data5, data6, data7, dataAll];
       
 // Keep a global list of all SVGs for linked brushing
 window.linkedGraphs = [];
-/*var svg1 = drawData("box1", data1);
-var svg2 = drawData("box2", data2);*/
-//event listener
+
+//Check if the checkboxes have been changed: 
 document.querySelectorAll("#checkBoxes input[type='checkbox']").forEach(cb => {
     cb.addEventListener("change", () => updateGraph(datasets));
 });
@@ -399,12 +383,12 @@ document.querySelectorAll("#checkBoxes2 input[type='checkbox']").forEach(cb => {
     cb.addEventListener("change", () => updateGraph(datasets));
 });
 
+//call the updating function: 
 updateGraph(datasets); 
 });
-/*window.linkedGraphs.push(svg1);
-window.linkedGraphs.push(svg2);*/
 
-//Function to create multiple stars: --------------------------
+//EXTRA Function to create multiple stars for the background: --------------------------
+////stars: https://www.madrasacademy.com/create-a-dynamic-starry-night-background-with-html-css-and-javascript/
 function createStars() {
     const numberOfStars = 100; // Adjust for more or fewer stars
     for (let i = 0; i < numberOfStars; i++) {
